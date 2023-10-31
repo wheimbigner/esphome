@@ -49,13 +49,13 @@ CONFIG_SCHEMA = cv.All(
         }
     ).extend(i2c.i2c_device_schema(0x76)),
     cv.only_with_arduino,
-    cv.Any(
-        cv.only_on_esp8266,
-        cv.All(
-            cv.only_on_esp32,
-            esp32.only_on_variant(supported=[esp32.const.VARIANT_ESP32]),
-        ),
-    ),
+#    cv.Any(
+#        cv.only_on_esp8266,
+#        cv.All(
+#            cv.only_on_esp32,
+#            esp32.only_on_variant(supported=[esp32.const.VARIANT_ESP32]),
+#        ),
+#    ),
 )
 
 
@@ -76,4 +76,4 @@ async def to_code(config):
     cg.add_library("SPI", None)
 
     cg.add_define("USE_BSEC")
-    cg.add_library("boschsensortec/BSEC Software Library", "1.6.1480")
+    cg.add_library("https://github.com/boschsensortec/Bosch-BSEC2-Library.git", "1.6.2400")
