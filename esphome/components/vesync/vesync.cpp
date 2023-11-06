@@ -34,12 +34,6 @@ namespace esphome {
     }
   }
 
-void vesync::handle_char_(uint8_t c) {
-  // Append the character to the message buffer
-  this->rx_message_.push_back(c);
-}
-
-float vesync::get_setup_priority() const { return setup_priority::DATA; }
 optional<bool> vesync::check_byte_() {
   uint8_t index = this->data_index_;
   uint8_t byte = this->data_[index];
@@ -120,7 +114,7 @@ void vesync::dump_config() {
 //  LOG_SENSOR("", "The Sensor", this->vesyncPowerSwitch_);
 }
 
-void vesync::send_command_onoff(bool state) {
+void vesync::send_command_onoff_(bool state) {
   this->data_index_ = 0;
   this->data_[data_index_++] = 0xA5;
   this->data_[data_index_++] = 0x22;
@@ -144,7 +138,7 @@ void vesync::send_command_onoff(bool state) {
 }
 
 void vesyncPowerSwitch::write_state(bool state) {
-  this->parent_->send_command_onoff(state);
+  this->parent_->send_command_onoff_(state);
 // strictly speaking we shouldn't publish state until we get a response from the device
   this->publish_state(state);
 }
