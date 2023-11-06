@@ -19,6 +19,7 @@ class vesync : public Component,  public uart::UARTDevice {
   void setup() override;
   void loop() override;
   void dump_config() override;
+  void send_command_onoff(bool state);
 
 /*  void set_the_text(text_sensor::TextSensor *text_sensor) { the_text_ = text_sensor; }
   void set_the_sensor(sensor::Sensor *sensor) { the_sensor_ = sensor; }
@@ -29,7 +30,6 @@ class vesync : public Component,  public uart::UARTDevice {
 /*  text_sensor::TextSensor *the_text_{nullptr};
   sensor::Sensor *the_sensor_{nullptr};
   binary_sensor::BinarySensor *the_binsensor_{nullptr}; */
-  void send_command_onoff(bool state);
   optional<bool> check_byte_();
   void parse_data_();
   uint32_t last_update_{0};
