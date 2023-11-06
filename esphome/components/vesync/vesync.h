@@ -25,7 +25,7 @@ class vesync : public Component,  public uart::UARTDevice {
   void set_the_binsensor(binary_sensor::BinarySensor *sensor) { the_binsensor_ = sensor; } */
 
  protected:
-  switch::Switch *vesyncPowerSwitch_{nullptr};
+//  switch::Switch *vesyncPowerSwitch_{nullptr};
 /*  text_sensor::TextSensor *the_text_{nullptr};
   sensor::Sensor *the_sensor_{nullptr};
   binary_sensor::BinarySensor *the_binsensor_{nullptr}; */
@@ -38,8 +38,8 @@ class vesync : public Component,  public uart::UARTDevice {
 class vesyncPowerSwitch : public Component, public switch_::Switch {
  public:
   void set_parent(vesync *parent) { this->parent_ = parent; }
-// protected:
-//  void write_state(bool state) override;
+  protected:
+    void write_state(bool state) override;
   vesync *parent_;
 };
 

@@ -77,6 +77,8 @@ optional<bool> vesync::check_byte_() {
 }
 
 void vesync::parse_data_() {
+  // todo: publish states here for any data we get from MCU
+
   /* todo
       uint16_t pm_1_0_std_concentration = this->get_16_bit_uint_(4);
       uint16_t pm_2_5_std_concentration = this->get_16_bit_uint_(6);
@@ -115,7 +117,7 @@ void vesync::parse_data_() {
 
 void vesync::dump_config() {
 //  LOG_TEXT_SENSOR("", "The Text Sensor", this->the_text_);
-  LOG_SENSOR("", "The Sensor", this->vesyncPowerSwitch_);
+//  LOG_SENSOR("", "The Sensor", this->vesyncPowerSwitch_);
 }
 
 void vesync::send_command_onoff(bool state) {
@@ -141,6 +143,11 @@ void vesync::send_command_onoff(bool state) {
   this->data_index_ = 0;
 }
 
+void vesyncPowerSwitch::write_state(bool state) {
+  this->parent_->send_command_onoff(state);
+// strictly speaking we shouldn't publish state until we get a response from the device
+  this->publish_state(state);
+}
 
 /*
 void vesync::write_binary(bool state) {
