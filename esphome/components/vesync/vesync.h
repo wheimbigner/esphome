@@ -29,13 +29,13 @@ class vesync : public Component,  public uart::UARTDevice {
 /*  text_sensor::TextSensor *the_text_{nullptr};
   sensor::Sensor *the_sensor_{nullptr};
   binary_sensor::BinarySensor *the_binsensor_{nullptr}; */
+  void send_command_onoff(bool state);
   optional<bool> check_byte_();
   void parse_data_();
   uint32_t last_update_{0};
   uint8_t data_[64];
   uint8_t data_index_{0};
   uint32_t last_transmission_{0};
-  void send_command_onoff_(bool state);
 
   std::vector<uint8_t> rx_message_;
 };

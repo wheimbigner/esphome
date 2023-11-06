@@ -138,7 +138,8 @@ void vesync::send_command_onoff_(bool state) {
 }
 
 void vesyncPowerSwitch::write_state(bool state) {
-  this->parent_->send_command_onoff_(state);
+  // this probably should be moved into a protected function in vesyncPowerSwitch rather than as a function of the parent
+  this->parent_->send_command_onoff(state);
 // strictly speaking we shouldn't publish state until we get a response from the device
   this->publish_state(state);
 }
