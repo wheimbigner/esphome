@@ -114,7 +114,7 @@ void vesync::dump_config() {
 //  LOG_SENSOR("", "The Sensor", this->vesyncPowerSwitch_);
 }
 
-void vesync::send_command_onoff_(bool state) {
+void vesync::send_command_onoff(bool state) {
   this->data_index_ = 0;
   this->data_[data_index_++] = 0xA5;
   this->data_[data_index_++] = 0x22;
