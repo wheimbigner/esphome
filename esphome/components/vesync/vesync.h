@@ -11,7 +11,7 @@
 #include "esphome/components/uart/uart.h"
 
 namespace esphome {
-namespace uart_demo {
+namespace vesync {
 
 class vesync : public Component,  public uart::UARTDevice {
  public:
@@ -81,5 +81,5 @@ class UARTDemoButton : public Component, public button::Button {
   UARTDemo *parent_;
 };
 */
-}  // namespace uart_demo
+}  // namespace vesync
 }  // namespace esphome
