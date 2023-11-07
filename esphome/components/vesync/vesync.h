@@ -43,6 +43,6 @@ class vesyncFanSpeed : public Component, public number::Number {
   protected:
     void control(float state);
   vesync *parent_;
-}
+};
 }  // namespace vesync
 }  // namespace esphome
