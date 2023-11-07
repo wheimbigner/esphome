@@ -15,7 +15,6 @@ vesyncPowerSwitch = vesync_ns.class_('vesyncPowerSwitch', switch.Switch, cg.Comp
 vesyncFanNumber = vesync_ns.class_('vesyncFanNumber', number.Number, cg.Component)
 #UARTDemoBOutput = uart_demo_ns.class_("UARTDemoBOutput", output.BinaryOutput)
 #UARTDemoFOutput = uart_demo_ns.class_("UARTDemoFOutput", output.FloatOutput)
-#UARTDemoSwitch = uart_demo_ns.class_("Core200SPower", switch.Switch, cg.Component)
 #UARTDemoSwitch = uart_demo_ns.class_("UARTDemoSwitch", switch.Switch, cg.Component)
 #UARTDemoButton = uart_demo_ns.class_("UARTDemoButton", button.Button, cg.Component)
 
