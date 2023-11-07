@@ -148,7 +148,7 @@ void vesyncFanSpeed::setup() {
   this->traits.set_step(1.0); // Set step size to 1 to enforce integer increments
 }
 
-void vesyncFanSpeed::write_state(float state) {
+void vesyncFanSpeed::control(float state) {
   int rounded_state = static_cast<int>(std::round(state));
   if (rounded_state < 0) rounded_state = 0;
   if (rounded_state > 4) rounded_state = 4;

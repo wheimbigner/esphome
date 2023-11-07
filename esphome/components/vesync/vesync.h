@@ -41,7 +41,7 @@ class vesyncFanSpeed : public Component, public number::Number {
   void set_parent(vesync *parent) { this->parent_ = parent; }
   void setup() override;
   protected:
-    void write_state(float state) override;
+    void control(float state);
   vesync *parent_;
 }
 }  // namespace vesync
