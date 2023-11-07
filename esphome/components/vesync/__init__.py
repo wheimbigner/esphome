@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome import automation
-from esphome.components import uart, binary_sensor, button, output, sensor, switch, text_sensor
+from esphome.components import uart, binary_sensor, button, output, sensor, switch, text_sensor, number
 from esphome.const import CONF_ID, CONF_STATE, DEVICE_CLASS_VOLTAGE, ICON_FLASH, UNIT_VOLT
 
 MULTI_CONF = False
@@ -12,6 +12,7 @@ vesync_ns = cg.esphome_ns.namespace('vesync')
 
 vesync = vesync_ns.class_('vesync', cg.Component, uart.UARTDevice)
 vesyncPowerSwitch = vesync_ns.class_('vesyncPowerSwitch', switch.Switch, cg.Component)
+vesyncFanNumber = vesync_ns.class_('vesyncFanNumber', number.Number, cg.Component)
 #UARTDemoBOutput = uart_demo_ns.class_("UARTDemoBOutput", output.BinaryOutput)
 #UARTDemoFOutput = uart_demo_ns.class_("UARTDemoFOutput", output.FloatOutput)
 #UARTDemoSwitch = uart_demo_ns.class_("Core200SPower", switch.Switch, cg.Component)
@@ -26,10 +27,12 @@ vesyncPowerSwitch = vesync_ns.class_('vesyncPowerSwitch', switch.Switch, cg.Comp
 #CONF_THE_SWITCH = "the_switch"
 #CONF_THE_BUTTON = "the_button"
 CONF_POWER_SWITCH = "power_switch"
+CONF_FAN_NUMBER = "fan_number"
 
 CONFIG_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(vesync),
     cv.Optional(CONF_POWER_SWITCH): switch.SWITCH_SCHEMA.extend({cv.GenerateID(): cv.declare_id(vesyncPowerSwitch)}),
+    cv.Optional(CONF_FAN_NUMBER): number.NUMBER_SCHEMA.extend({cv.GenerateID(): cv.declare_id(vesyncFanNumber)}),
 #    cv.Optional(CONF_THE_TEXT): text_sensor.text_sensor_schema(text_sensor.TextSensor),
 #    cv.Optional(CONF_THE_SENSOR): sensor.sensor_schema(
 #        unit_of_measurement=UNIT_VOLT,
