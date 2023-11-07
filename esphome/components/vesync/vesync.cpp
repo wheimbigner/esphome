@@ -152,7 +152,7 @@ void vesyncPowerSwitch::write_state(bool state) {
     0x00, // The rest of the command's bytes
     0xA0,
     0x00,
-    state ? 0x01 : 0x00 // State byte: 0x01 for ON, 0x00 for OFF
+    static_cast<uint8_t>(state ? 0x01 : 0x00) // State byte: 0x01 for ON, 0x00 for OFF
   };
 
   this->parent_->send_command_(data);
@@ -161,14 +161,12 @@ void vesyncPowerSwitch::write_state(bool state) {
 }
 
 void vesyncFanSpeed::setup() {
-  auto traits = this->get_traits();
-  traits.set_min_value(0);
-  traits.set_max_value(4);
-  traits.set_step(1.0); // Set step size to 1 to enforce integer increments
-  this->set_traits(traits);
+  this->traits.set_min_value(0);
+  this->traits.set_max_value(4);
+  this->traits.set_step(1.0); // Set step size to 1 to enforce integer increments
 }
 
-void vesyncFanSpeed::write_state(float state) override {
+void vesyncFanSpeed::write_state(float state) {
   int rounded_state = static_cast<int>(std::round(state));
   if (rounded_state < 0) rounded_state = 0;
   if (rounded_state > 4) rounded_state = 4;

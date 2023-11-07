@@ -6,7 +6,7 @@ from esphome.const import CONF_ID, CONF_STATE, DEVICE_CLASS_VOLTAGE, ICON_FLASH,
 
 MULTI_CONF = False
 DEPENDENCIES = ['uart']
-AUTO_LOAD = ['binary_sensor', 'button', 'output', 'sensor', 'switch', 'text_sensor']
+AUTO_LOAD = ['binary_sensor', 'button', 'output', 'sensor', 'switch', 'text_sensor', 'number']
 
 vesync_ns = cg.esphome_ns.namespace('vesync')
 
