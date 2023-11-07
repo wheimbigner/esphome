@@ -118,10 +118,10 @@ void vesync::send_command_onoff(bool state) {
   this->data_index_ = 0;
   this->data_[data_index_++] = 0xA5;
   this->data_[data_index_++] = 0x22;
-  this->data_[data_index_++] = 0x09; // might need 0x0C for off?
+  this->data_[data_index_++] = 0x09; // might need 0x0C for off? or is this a nonce? IDK
   this->data_[data_index_++] = 0x05;
   this->data_[data_index_++] = 0x00;
-  this->data_[data_index_++] = 0x88; // might need 0x86 for off?
+  this->data_[data_index_++] = 0x00; // Set checksum bit to 0 so it doesn't throw off summation later
   this->data_[data_index_++] = 0x01;
   this->data_[data_index_++] = 0x00;
   this->data_[data_index_++] = 0xA0;
@@ -131,6 +131,15 @@ void vesync::send_command_onoff(bool state) {
   } else {
     this->data_[data_index_++] = 0x00;
   }
+
+  // Calculate checksum
+  uint8_t checksum = 0x00;
+  for (int i = 0; i < data_index_; i++) {
+    checksum += this->data_[i];
+  }
+  checksum = ~checksum;
+  this->data_[5] = checksum;
+
   for (int i = 0; i < data_index_; i++) {
     this->parent_->write_byte(this->data_[i]);
   }
