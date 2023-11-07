@@ -114,45 +114,80 @@ void vesync::dump_config() {
 //  LOG_SENSOR("", "The Sensor", this->vesyncPowerSwitch_);
 }
 
-void vesync::send_command_onoff(bool state) {
-  this->data_index_ = 0;
-  this->data_[data_index_++] = 0xA5;
-  this->data_[data_index_++] = 0x22;
-  this->data_[data_index_++] = 0x09; // might need 0x0C for off? or is this a nonce? IDK
-  this->data_[data_index_++] = 0x05;
-  this->data_[data_index_++] = 0x00;
-  this->data_[data_index_++] = 0x00; // Set checksum bit to 0 so it doesn't throw off summation later
-  this->data_[data_index_++] = 0x01;
-  this->data_[data_index_++] = 0x00;
-  this->data_[data_index_++] = 0xA0;
-  this->data_[data_index_++] = 0x00;
-  if (state) {
-    this->data_[data_index_++] = 0x01;
-  } else {
-    this->data_[data_index_++] = 0x00;
-  }
+void vesync::send_command_(std::vector<uint8_t> data) {
+  // Command format: 0xA5, 0x22, command, length, checksum, ...data...
+  std::vector<uint8_t> command;
+  command.push_back(0xA5); // Start of command
+  command.push_back(0x22); // Command type or ID
+  command.push_back(0x0C); // unknown purpose, possibly nonce/sequential command#
+  command.push_back(0x00); // Placeholder for length of following data, will be set later
+  command.push_back(0x00); // Unknown purpose, but appears to always be 0
+  command.push_back(0x00); // Placeholder for checksum, will be set later
+  command.push_back(0x01); // Unknown purporse, appears to always be 1
 
-  // Calculate checksum
+  // Append actual data to the command
+  command.insert(command.end(), data.begin(), data.end());
+
+  // Set the length byte to the size of data following it (not including checksum placeholder)
+  command[3] = command.size() - 6;
+
+  // Calculate checksum (excluding the checksum byte itself)
   uint8_t checksum = 0x00;
-  for (int i = 0; i < data_index_; i++) {
-    checksum += this->data_[i];
+  for (size_t i = 0; i < command.size(); i++) {
+    checksum += command[i];
   }
   checksum = ~checksum;
-  this->data_[5] = checksum;
 
-  for (int i = 0; i < data_index_; i++) {
-    this->parent_->write_byte(this->data_[i]);
+  // Set the checksum in the command
+  command[5] = checksum;
+
+  // Send all bytes
+  for (uint8_t byte : command) {
+    this->parent_->write_byte(byte);
   }
-  this->data_index_ = 0;
 }
 
 void vesyncPowerSwitch::write_state(bool state) {
-  // this probably should be moved into a protected function in vesyncPowerSwitch rather than as a function of the parent
-  this->parent_->send_command_onoff(state);
+  std::vector<uint8_t> data = {
+    0x00, // The rest of the command's bytes
+    0xA0,
+    0x00,
+    state ? 0x01 : 0x00 // State byte: 0x01 for ON, 0x00 for OFF
+  };
+
+  this->parent_->send_command_(data);
 // strictly speaking we shouldn't publish state until we get a response from the device
   this->publish_state(state);
 }
 
+void vesyncFanSpeed::setup() {
+  auto traits = this->get_traits();
+  traits.set_min_value(0);
+  traits.set_max_value(4);
+  traits.set_step(1.0); // Set step size to 1 to enforce integer increments
+  this->set_traits(traits);
+}
+
+void vesyncFanSpeed::write_state(float state) override {
+  int rounded_state = static_cast<int>(std::round(state));
+  if (rounded_state < 0) rounded_state = 0;
+  if (rounded_state > 4) rounded_state = 4;
+    // Since the step is 1, state should always be an integer value.
+
+  std::vector<uint8_t> data = {
+    0x60,
+    0xA2,
+    0x00,
+    0x00,
+    0x01,
+    static_cast<uint8_t>(rounded_state)
+  };
+
+  this->parent_->send_command_(data);
+
+    // Finally, call the parent class's method to actually set the value
+    this->publish_state(rounded_state);
+  }
 /*
 void vesync::write_binary(bool state) {
   this->write_str(ONOFF(state));
