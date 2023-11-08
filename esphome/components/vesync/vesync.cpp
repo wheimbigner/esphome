@@ -1,6 +1,44 @@
 #include "vesync.h"
 #include "esphome/core/log.h"
 
+
+/*
+Commands to handle:
+  purifier_uart_query_device_status: 0x4061
+         purifier_uart_set_wifi_led: 0xA129
+      purifier_uart_set_power_state: 0xA000 // DONE
+             purifier_uart_set_mode: 0xA5E0 - for sleep mode on/off
+            purifier_uart_set_level: 0xA260 // DONE
+    purifier_uart_set_display_state: 0xA105 - for turning display on/off
+     purifier_uart_set_display_mode: 0xA5E1 // Not sure what this does - it might be for the "auto-off-at-night" on some purifier models, but not the 200S
+            purifier_uart_set_timer: 0xA264
+            purifier_uart_get_timer: 0xA265
+     purifier_uart_set_filter_state: 0xA5E2
+        purifier_uart_set_childlock: 0xD100
+       purifier_uart_set_nightlight: 0xA003
+         purifier_uart_reset_filter: 0xA5E4
+           purifier_uart_reboot_mcu: 0xD101
+purifier_uart_set_production_status: 0xD004
+purifier_uart_set_production_result: 0xD005
+         purifier_uart_test_command: 0xD007
+
+ACKs to handle:
+purifier_device_status_ack_and_report: 0x4061
+purifier_uart_ack_test?????:           0xA265 c.f. DAT_40148864
+purifier_uart_set_timer_ack:           0xA264
+purifier_uart_set_level_ack:           0xA260
+
+Functionality to do:
+Our component should query device status on initialization
+Need to incorporate persistent tracking of the filter's lifespan
+
+Additional components/types needed:
+Timer (since MCU I believe bakes that inside when pressing the timer button on the purifier)
+Light/nightlight status
+Child-Lock status
+Enable-display status
+
+*/
 namespace esphome {
   namespace vesync {
 
