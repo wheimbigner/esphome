@@ -12,38 +12,15 @@ vesync_ns = cg.esphome_ns.namespace('vesync')
 
 vesync = vesync_ns.class_('vesync', cg.Component, uart.UARTDevice)
 vesyncPowerSwitch = vesync_ns.class_('vesyncPowerSwitch', switch.Switch, cg.Component)
-vesyncFanNumber = vesync_ns.class_('vesyncFanNumber', number.Number, cg.Component)
-#UARTDemoBOutput = uart_demo_ns.class_("UARTDemoBOutput", output.BinaryOutput)
-#UARTDemoFOutput = uart_demo_ns.class_("UARTDemoFOutput", output.FloatOutput)
-#UARTDemoSwitch = uart_demo_ns.class_("UARTDemoSwitch", switch.Switch, cg.Component)
-#UARTDemoButton = uart_demo_ns.class_("UARTDemoButton", button.Button, cg.Component)
+vesyncFanSpeed = vesync_ns.class_('vesyncFanSpeed', number.Number, cg.Component)
 
-#CONF_THE_TEXT = "the_text"
-#CONF_THE_SENSOR = "the_sensor"
-#CONF_THE_BIN_OUTPUT = "the_bin_output"
-#CONF_THE_FLT_OUTPUT = "the_flt_output"
-#CONF_THE_BINSENSOR = "the_binsensor"
-#CONF_THE_SWITCH = "the_switch"
-#CONF_THE_BUTTON = "the_button"
 CONF_POWER_SWITCH = "power_switch"
-CONF_FAN_NUMBER = "fan_number"
+CONF_FAN_SPEED = "fan_speed"
 
 CONFIG_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(vesync),
-    cv.Optional(CONF_POWER_SWITCH): switch.SWITCH_SCHEMA.extend({cv.GenerateID(): cv.declare_id(vesyncPowerSwitch)}),
-    cv.Optional(CONF_FAN_NUMBER): number.NUMBER_SCHEMA.extend({cv.GenerateID(): cv.declare_id(vesyncFanNumber)}),
-#    cv.Optional(CONF_THE_TEXT): text_sensor.text_sensor_schema(text_sensor.TextSensor),
-#    cv.Optional(CONF_THE_SENSOR): sensor.sensor_schema(
-#        unit_of_measurement=UNIT_VOLT,
-#        icon=ICON_FLASH,
-#        accuracy_decimals=1,
-#        device_class=DEVICE_CLASS_VOLTAGE
-#    ),
-#    cv.Optional(CONF_THE_BIN_OUTPUT): output.BINARY_OUTPUT_SCHEMA.extend({cv.GenerateID(): cv.declare_id(UARTDemoBOutput)}),
-#    cv.Optional(CONF_THE_FLT_OUTPUT): output.FLOAT_OUTPUT_SCHEMA.extend({cv.GenerateID(): cv.declare_id(UARTDemoFOutput)}),
-#    cv.Optional(CONF_THE_BINSENSOR): binary_sensor.binary_sensor_schema(),
-#    cv.Optional(CONF_THE_SWITCH): switch.SWITCH_SCHEMA.extend({cv.GenerateID(): cv.declare_id(UARTDemoSwitch)}),
-#    cv.Optional(CONF_THE_BUTTON): button.BUTTON_SCHEMA.extend({cv.GenerateID(): cv.declare_id(UARTDemoButton)}),
+    cv.Required(CONF_POWER_SWITCH): switch.SWITCH_SCHEMA.extend({cv.GenerateID(): cv.declare_id(vesyncPowerSwitch)}),
+    cv.Required(CONF_FAN_SPEED): number.NUMBER_SCHEMA.extend({cv.GenerateID(): cv.declare_id(vesyncFanSpeed)}),
 }).extend(uart.UART_DEVICE_SCHEMA)
 
 
@@ -52,35 +29,12 @@ async def to_code(config):
     await cg.register_component(var, config)
     await uart.register_uart_device(var, config)
 
-#    if CONF_THE_TEXT in config:
-#        sens = await text_sensor.new_text_sensor(config[CONF_THE_TEXT])
-#        cg.add(var.set_the_text(sens))
-
-#    if CONF_THE_SENSOR in config:
-#        sens = await sensor.new_sensor(config[CONF_THE_SENSOR])
-#        cg.add(var.set_the_sensor(sens))
-
-#    if CONF_THE_BIN_OUTPUT in config:
-#        conf = config[CONF_THE_BIN_OUTPUT]
-#        out = cg.new_Pvariable(conf[CONF_ID])
-#        await output.register_output(out, conf)
-#        cg.add(out.set_parent(var))
-
-#    if CONF_THE_FLT_OUTPUT in config:
-#        conf = config[CONF_THE_FLT_OUTPUT]
-#        out = cg.new_Pvariable(conf[CONF_ID])
-#        await output.register_output(out, conf)
-#        cg.add(out.set_parent(var))
-
-#    if CONF_THE_BINSENSOR in config:
-#        sens = await binary_sensor.new_binary_sensor(config[CONF_THE_BINSENSOR])
-#        cg.add(var.set_the_binsensor(sens))
-
     if CONF_POWER_SWITCH in config:
         sw = await switch.new_switch(config[CONF_POWER_SWITCH])
+        cg.add(var.set_vesyncPowerSwitch(sw))
         cg.add(sw.set_parent(var))
 
-#    if CONF_THE_BUTTON in config:
-#        btn = await button.new_button(config[CONF_THE_BUTTON])
-#        cg.add(btn.set_parent(var))
-
+    if CONF_FAN_SPEED in config:
+        sw = await number.new_number(config[CONF_FAN_SPEED], min_value = 0.0, max_value = 4.0, step = 1.0)
+        cg.add(var.set_vesyncFanSpeed(sw))
+        cg.add(sw.set_parent(var))
