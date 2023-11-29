@@ -7,14 +7,14 @@ Commands to handle:
   purifier_uart_query_device_status: 0x4061
          purifier_uart_set_wifi_led: 0xA129
       purifier_uart_set_power_state: 0xA000 // DONE
-             purifier_uart_set_mode: 0xA5E0 - for sleep mode on/off
+             purifier_uart_set_mode: 0xA5E0 // Done
             purifier_uart_set_level: 0xA260 // DONE
     purifier_uart_set_display_state: 0xA105 - for turning display on/off
      purifier_uart_set_display_mode: 0xA5E1 // Not sure what this does - it might be for the "auto-off-at-night" on some purifier models, but not the 200S
             purifier_uart_set_timer: 0xA264
             purifier_uart_get_timer: 0xA265
-     purifier_uart_set_filter_state: 0xA5E2
-        purifier_uart_set_childlock: 0xD100
+     purifier_uart_set_filter_state: 0xA5E2 // DONE
+        purifier_uart_set_childlock: 0xD100 // DONE
        purifier_uart_set_nightlight: 0xA003
          purifier_uart_reset_filter: 0xA5E4
            purifier_uart_reboot_mcu: 0xD101
@@ -44,26 +44,15 @@ namespace esphome {
 
   static const char *TAG = "vesync";
 
-  void vesync::set_vesyncPowerSwitch(switch_::Switch *vesyncPowerSwitch) {
-    vesyncPowerSwitch_ = vesyncPowerSwitch;
-  }
-
-  void vesync::set_vesyncFanSpeed(number::Number *vesyncFanSpeed) {
-    vesyncFanSpeed_ = vesyncFanSpeed;
-  }
-
-  void vesync::set_vesyncFanTimer(number::Number *vesyncFanTimer) {
-    vesyncFanTimer_ = vesyncFanTimer;
-  }
-
-  vesync::vesync() {}
-  vesync::vesync(const std::string &name) {
+// FIXME probably need these for timers idk
+//  vesync::vesync() {}
+//  vesync::vesync(const std::string &name) {
     // The `name` is needed to set timers up, hence non-default constructor
     // replaces `set_name()` method previously existed
-    this->name_ = name;
+//    this->name_ = name;
 //    this->timer_.push_back({this->name_ + "_purifier", false, 0, 0, std::bind(&vesync::purifier_timer_callback_, this)});
 //    this->timer_.push_back({this->name_ + "_filter_quality", false, 0, 0, std::bind(&vesync::filter_quality_timer_callback, this)});
-  }
+//  }
 
   void vesync::setup() {
   }
@@ -103,7 +92,7 @@ namespace esphome {
 
     if (index == 1)
       return ((byte == 0x12) || (byte == 0x22));
-  // I think 0x12 = message from MCU, 0x22 = message TO MCU, but MCU seems to send 0x12 sometimes
+  // 0x22 = command (from MCU or from ESP); 0x12 = acknowledgement/response (from MCU or from ESP)
     if (index == 2)
       return true;
 
@@ -184,10 +173,28 @@ namespace esphome {
                       major_version, minor_version, trivial_version, power_state,
                       static_cast<uint8_t>(work_mode), manual_level, display_state,
                       display_config, display_mode, filter_state, childlock, nightlight);
+        if (this->vesyncMcuVersion_ != nullptr) {
+          std::string version = str_sprintf("V%d.%d.%02d", major_version, minor_version, trivial_version);
+          this->vesyncMcuVersion_->publish_state(version);
+        }
         if (this->vesyncPowerSwitch_ != nullptr)
           this->vesyncPowerSwitch_->publish_state(power_state);
         if (this->vesyncFanSpeed_ != nullptr)
           this->vesyncFanSpeed_->publish_state(manual_level);
+        if (this->vesyncFilterSwitch_ != nullptr)
+          this->vesyncFilterSwitch_->publish_state(filter_state);
+        if (this->vesyncChildlock_ != nullptr)
+          this->vesyncChildlock_->publish_state(childlock);
+        if (this->vesyncMode_ != nullptr) {
+          switch(work_mode) {
+            case WorkMode::MANUAL: this->vesyncMode_->publish_state("Manual"); break;
+            case WorkMode::SLEEP: this->vesyncMode_->publish_state("Sleep"); break;
+            case WorkMode::AUTO: this->vesyncMode_->publish_state("Auto"); break;
+            case WorkMode::POLLEN: this->vesyncMode_->publish_state("Pollen"); break;
+            case WorkMode::UNSET:
+            case WorkMode::UNKNOWN: break;
+          }
+        }
         // TBD: If the device is being turned off, do we cancel the timer?
         //      ESP_LOGE(TAG, "fan_level: %d", fan_level)
         // original firmware prints this out but it's a separate function that references stack depth, that I need to decode still
@@ -199,8 +206,9 @@ namespace esphome {
       } else if ((this->data_[7] == 0x65) && (this->data_[8] == 0xA2)) { // purifier_uart_get_timer_ack_and_report
         // bytes 10-13 are the number of seconds remaining on the timer
         // bytes 14-17 are the number of seconds the timer was set for
+      } else if ((this->data_[7] == 0x29) && (this->data_[8] == 0xA1)) { // ACK instruction on setting the wifi LED status
+        // data_[9] exists, purpose unknown.
       }
-
     } 
     else {
       ESP_LOGE(TAG, "magic command check failed!");
@@ -260,7 +268,7 @@ namespace esphome {
   void vesyncFanSpeed::control(float state) {
     int rounded_state = static_cast<int>(std::round(state));
     if (rounded_state < 0) rounded_state = 0;
-    if (rounded_state > 4) rounded_state = 4;
+    if (rounded_state > 3) rounded_state = 3;
       // Since the step is 1, state should always be an integer value.
 
     std::vector<uint8_t> data = {
@@ -272,6 +280,24 @@ namespace esphome {
 
       // Finally, call the parent class's method to actually set the value
     this->publish_state(rounded_state);
+  }
+
+
+  void vesyncFanTimer::control(float state) {
+/*    int rounded_state = static_cast<int>(std::round(state));
+    if (rounded_state < 0) rounded_state = 0;
+    if (rounded_state > 4) rounded_state = 4;
+      // Since the step is 1, state should always be an integer value.
+
+    std::vector<uint8_t> data = {
+      0x60, 0xA2, 0x00, 0x00, 0x01,
+      static_cast<uint8_t>(rounded_state)
+    };
+
+    this->parent_->send_command_(data);
+*/
+      // Finally, call the parent class's method to actually set the value
+    this->publish_state(state);
   }
 
 void vesync::start_timer_(const VesyncTimerIndex timer_index) {
@@ -303,37 +329,72 @@ std::function<void()> vesync::timer_cbf_(const VesyncTimerIndex timer_index) {
 }
 
 void vesync::fan_timer_callback_() {
-  this->timer_[vesync::TIMER_FAN].active = false;
+  this->timer_[TIMER_FAN].active = false;
   ESP_LOGVV(TAG, "Fan timer expired");
   // I don't think we need to necessarily need to do much here?
 }
 
 void vesync::filter_timer_callback_() {
-  this->timer_[vesync::TIMER_FILTER].active = false;
+  this->timer_[TIMER_FILTER].active = false;
   ESP_LOGVV(TAG, "Filter timer expired");
 }
 
-void vesyncSelectThing::setup() {
-  if (this->f_.has_value())
-    return;
-
-  std::string value;
-  ESP_LOGD(TAG, "Setting up Template Select");
-  value = this->at(0).value();
+void vesyncMode::control(const std::string &value) {
+  std::vector<uint8_t> data = { 0xE0, 0xA5, 0x00, 0x00 };
+  if (value == "Manual") {
+    data[3] = static_cast<uint8_t>(WorkMode::MANUAL);
+  } else if (value == "Sleep") {
+    data[3] = static_cast<uint8_t>(WorkMode::SLEEP);
+  }
+  this->parent_->send_command_(data);
   this->publish_state(value);
 }
 
-  void vesyncSelectThing::control(std::string &value) {
+  void vesyncFilterSwitch::write_state(bool state) {
+    std::vector<uint8_t> data = {
+      0xE2, 0xA5, 0x00,
+      static_cast<uint8_t>(state ? 0x01 : 0x00) // State byte: 0x01 for ON, 0x00 for OFF
+    };
+
+    this->parent_->send_command_(data);
+  // strictly speaking we shouldn't publish state until we get a response from the device
+    this->publish_state(state);
+  }
+
+  void vesyncChildlock::write_state(bool state) {
+    std::vector<uint8_t> data = {
+      0x00, 0xD1,
+      static_cast<uint8_t>(state ? 0x01 : 0x00) // State byte: 0x01 for ON, 0x00 for OFF
+    };
+
+    this->parent_->send_command_(data);
+  // strictly speaking we shouldn't publish state until we get a response from the device
+    this->publish_state(state);
+  }
+
+  void vesyncNightlight::write_state(LightState state) {
+    float brightness;
+    state->current_values_as_brightness(&brightness);
+    std::vector<uint8_t> data = {
+      0x03, 0xA0, 0x00, 0x00,
+      static_cast<uint8_t>(brightness) // State byte: 0x01 for ON, 0x00 for OFF
+    };
+
+    this->parent_->send_command_(data);
+    this->publish_state(state);
+  }
+
+  void vesyncSelectThing::setup() {
+    std::string value;
+    ESP_LOGD(TAG, "Setting up Template Select");
+    value = this->at(0).value();
+    this->publish_state(value);
+  }
+
+  void vesyncSelectThing::control(const std::string &value) {
     // "wifi0", "wifi1", "wifi2", "wifi3", 
     //        "mode0", "mode1", "mode2", "mode3", "settimer0", "settimer60", "settimermax", "setfilterstate0", "setfilterstate1"] 
-    // wifi modes:
-    // slow_blink: 29:A1:00:02:F4:01:F4:01:00
-    // fast_blink: 29:A1:00:02:7D:00:7D:00:00
-    // stop_blink: 29:A1:00:01:7D:00:7D:00:00
-    // Command structure: 0x29, 0xA1, 0x00, (param_1 is 0, 1, or 2), [word]param_2, [word] param_3, [char] param_4
-    // successful wifi selfcheck callback = 1 0 0 0
-    // failed wifi selfcheck callback = 0 0 0 0
-    // param_1 color, param_2 on time, param_3 off time, param_4 unknown?
+    // Command structure: 0x29, 0xA1, 0x00, (mode (0=off, 1=on, 2=blink)), [word]on_time, [word] off_time, [char] param_4
 
     if (value == "wifi0") {
       std::vector<uint8_t> data = { 0x29, 0xA1, 0x00, 0x02, 0xF4, 0x01, 0xF4, 0x01, 0x00 };
@@ -348,11 +409,12 @@ void vesyncSelectThing::setup() {
       this->parent_->send_command_(data);
     }
     if (value == "wifi3") {
-      std::vector<uint8_t> data = { 0x29, 0xA1, 0x00, 0x01, 0xDC, 0x05, 0x7D, 0x00, 0x00 };
+      std::vector<uint8_t> data = { 0x29, 0xA1, 0x00, 0x02, 0xDC, 0x05, 0x7D, 0x00, 0x00 };
       this->parent_->send_command_(data);
     }
+    
     // Finally, call the parent class's method to actually set the value
-    this->publish_state(rounded_state);
+    this->publish_state(value);
   }
 
 
