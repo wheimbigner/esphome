@@ -84,8 +84,8 @@ void PCBADBMComponent::setup() {
     return;
   }
 
-  ESP_LOGCONFIG(TAG, "Setting Tavg to 1000ms...");
-  uint16_t Tavg = 0x03E8; // 1000ms; to-do: make configurable. shouldn't need to write here regardless, it's default.
+  ESP_LOGCONFIG(TAG, "Setting Tavg to 125ms...");
+  uint16_t Tavg = 125; // or 1000ms; to-do: make configurable. shouldn't need to write here regardless, it's default.
   if (!this->write_byte(PCBADBM_REGISTER_TAVG_HIGH, (Tavg >> 8) & 0xFF)) {
     this->mark_failed();
     return;
@@ -117,24 +117,32 @@ void PCBADBMComponent::dump_config() {
 float PCBADBMComponent::get_setup_priority() const { return setup_priority::DATA; }
 
 void PCBADBMComponent::update() {
+  static int invocationCount = 0;
+
+  // Increment the count each time the function is called
+  invocationCount++;
+
+  if (invocationCount % 1 == 0) { // change from 1 to 8 for slow mode
+    invocationCount = 0;
   // Enable sensor
-  ESP_LOGV(TAG, "Sending conversion request...");
+    ESP_LOGV(TAG, "Sending conversion request...");
 
-  uint32_t meas_time = 2;
+    uint32_t meas_time = 2;
 
-  this->set_timeout("data", meas_time, [this]() {
-    uint8_t dbm = this->read_decibels_();
-    uint8_t dbm_min = this->read_min_decibels_();
-    uint8_t dbm_max = this->read_max_decibels_();
+    this->set_timeout("data", meas_time, [this]() {
+      uint8_t dbm = this->read_decibels_();
+      uint8_t dbm_min = this->read_min_decibels_();
+      uint8_t dbm_max = this->read_max_decibels_();
 
-    ESP_LOGD(TAG, "Got dBm=%3d min=%3d max=%3d", dbm, dbm_min, dbm_max);
-    if (this->decibels_sensor_ != nullptr)
-      this->decibels_sensor_->publish_state(dbm);
-    if (this->decibels_max_sensor_ != nullptr)
-      this->decibels_max_sensor_->publish_state(dbm_max);
-    if (this->decibels_min_sensor_ != nullptr)
-      this->decibels_min_sensor_->publish_state(dbm_min);
-  });
+      ESP_LOGD(TAG, "Got dBm=%3d min=%3d max=%3d", dbm, dbm_min, dbm_max);
+      if (this->decibels_sensor_ != nullptr)
+        this->decibels_sensor_->publish_state(dbm);
+      if (this->decibels_max_sensor_ != nullptr)
+        this->decibels_max_sensor_->publish_state(dbm_max);
+      if (this->decibels_min_sensor_ != nullptr)
+        this->decibels_min_sensor_->publish_state(dbm_min);
+    });
+  }
 }
 
 uint8_t PCBADBMComponent::read_decibels_() {
