@@ -6,9 +6,9 @@
 namespace esphome {
 namespace pcbadbm {
 
-class ResetSystemButton : public button::Button, public Parented<PCBADBMComponent> {
+class ResetInterruptButton : public button::Button, public Parented<PCBADBMComponent> {
  public:
-  ResetSystemButton() = default;
+  ResetInterruptButton() = default;
 
  protected:
   void press_action() override;

@@ -1,9 +1,9 @@
-#include "reset_system_button.h"
+#include "reset_interrupt_button.h"
 
 namespace esphome {
 namespace pcbadbm {
 
-void ResetSystemButton::press_action() { this->parent_->reset_system(); }
+void ResetInterruptButton::press_action() { this->parent_->write_byte(PCBADBM_REGISTER_RESET, 0b00000001); }
 
 }  // namespace pcbadbm
 }  // namespace esphome

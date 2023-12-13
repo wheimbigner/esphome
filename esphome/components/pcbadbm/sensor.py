@@ -20,30 +20,28 @@ PCBADBMComponent = pcbadbm_ns.class_(
     "PCBADBMComponent", cg.PollingComponent, i2c.I2CDevice
 )
 
-CONFIG_SCHEMA = (
-    cv.Schema(
-        {
-            cv.GenerateID(CONF_PCBADBM_ID): cv.use_id(PCBADBMComponent),
-            cv.Optional("decibels"): sensor.sensor_schema(
-                unit_of_measurement=UNIT_DECIBEL,
-                accuracy_decimals=0,
-                device_class=DEVICE_CLASS_SOUND_PRESSURE,
-                state_class=STATE_CLASS_MEASUREMENT,
-            ),
-            cv.Optional("decibels_max"): sensor.sensor_schema(
-                unit_of_measurement=UNIT_DECIBEL,
-                accuracy_decimals=0,
-                device_class=DEVICE_CLASS_SOUND_PRESSURE,
-                state_class=STATE_CLASS_MEASUREMENT,
-            ),
-            cv.Optional("decibels_min"): sensor.sensor_schema(
-                unit_of_measurement=UNIT_DECIBEL,
-                accuracy_decimals=0,
-                device_class=DEVICE_CLASS_SOUND_PRESSURE,
-                state_class=STATE_CLASS_MEASUREMENT,
-            ),
-        }
-    )
+CONFIG_SCHEMA = cv.Schema(
+    {
+        cv.GenerateID(CONF_PCBADBM_ID): cv.use_id(PCBADBMComponent),
+        cv.Optional("decibels"): sensor.sensor_schema(
+            unit_of_measurement=UNIT_DECIBEL,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_SOUND_PRESSURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional("decibels_max"): sensor.sensor_schema(
+            unit_of_measurement=UNIT_DECIBEL,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_SOUND_PRESSURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional("decibels_min"): sensor.sensor_schema(
+            unit_of_measurement=UNIT_DECIBEL,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_SOUND_PRESSURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+    }
 )
 
 

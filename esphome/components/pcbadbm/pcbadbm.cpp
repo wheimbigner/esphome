@@ -7,42 +7,6 @@ namespace pcbadbm {
 
 static const char *const TAG = "pcbadbm.sensor";
 
-static const uint8_t PCBADBM_REGISTER_VERSION = 0x00; // Bit 7:4=HW version, 3:0=SW version
-static const uint8_t PCBADBM_REGISTER_ID3 = 0x01; // 4 bit device uid
-static const uint8_t PCBADBM_REGISTER_ID2 = 0x02;
-static const uint8_t PCBADBM_REGISTER_ID1 = 0x03;
-static const uint8_t PCBADBM_REGISTER_ID0 = 0x04;
-static const uint8_t PCBADBM_REGISTER_SCRATCH = 0x05; // r/w, default value 0xAA
-static const uint8_t PCBADBM_REGISTER_CONTROL = 0x06;
-// bit 7:5 = reserved. Always use 0.
-// bit 4 = interrupt type (1 = max/min; 0 = history 90% full)
-// bit 3 = enable interrupt operation
-// bit 2:1 = filter: none/A-weighting/C-weighting/reserved
-// bit 0 = power down. Set bit 3 of reset to trigger reset.
-static const uint8_t PCBADBM_REGISTER_TAVG_HIGH = 0x07; // default 0x03
-static const uint8_t PCBADBM_REGISTER_TAVG_LOW = 0x08; // default 0xE8
-// 1,000ms for slow intensity measurement, 125ms for fast mode
-// TAVG_HIGH must be written first, as writing low activates changes
-static const uint8_t PCBADBM_REGISTER_RESET = 0x09; // write only
-// bit 7:4 = reserved
-// bit 3 = system reset. restore settings to defaults.
-// bit 2 = clear history
-// bit 1 = clear max/min
-// bit 0 = clear interrupt
-static const uint8_t PCBADBM_REGISTER_DECIBEL = 0x0A; // read only
-// Latest sound intensity value in decibels, averaged over the last Tavg time period.
-// The decibel reading is only valid after about 1 second of module power-up.
-static const uint8_t PCBADBM_REGISTER_MIN_DECIBEL = 0x0B; // read only
-// Minimum value of decibel reading captured since power-up or manual reset of MIN/MAX registers.
-static const uint8_t PCBADBM_REGISTER_MAX_DECIBEL = 0x0C; // read only
-// Maximum value of decibel reading captured since power-up or manual reset of MIN/MAX registers.
-static const uint8_t PCBADBM_REGISTER_THR_MIN = 0x0D; // read-write. Default 45
-// Minimum decibel value (threshold) under which interrupt should be asserted.
-static const uint8_t PCBADBM_REGISTER_THR_MAX = 0x0E; // read-write. Default 85
-// Maximum decibel value (threshold) above which interrupt should be asserted.
-static const uint8_t PCBADBM_REGISTER_DBHISTORY_0 = 0x14; // read-only, continues on through 0x77 for 0..99
-// History of decibel readings, 0 = newest, 99 = oldest.
-
 inline uint16_t combine_bytes(uint8_t msb, uint8_t lsb) { return ((msb & 0xFF) << 8) | (lsb & 0xFF); }
 
 static const char *filter_to_str(PCBADBMFilter filter) {
@@ -130,22 +94,6 @@ void PCBADBMComponent::setup() {
     this->mark_failed();
     return;
   }
-}
-
-void PCBADBMComponent::reset_system_() {
-  this->write_byte(PCBADBM_REGISTER_RESET, 0b00001000);
-}
-
-void PCBADBMComponent::reset_history_() {
-  this->write_byte(PCBADBM_REGISTER_RESET, 0b00000100);
-}
-
-void PCBADBMComponent::reset_max_min_() {
-  this->write_byte(PCBADBM_REGISTER_RESET, 0b00000010);
-}
-
-void PCBADBMComponent::reset_interrupt_() {
-  this->write_byte(PCBADBM_REGISTER_RESET, 0b00000001);
 }
 
 void PCBADBMComponent::dump_config() {
