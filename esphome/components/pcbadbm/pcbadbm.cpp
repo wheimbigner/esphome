@@ -84,8 +84,8 @@ void PCBADBMComponent::setup() {
     return;
   }
 
-  ESP_LOGCONFIG(TAG, "Setting Tavg to 125ms...");
-  uint16_t Tavg = 125; // or 1000ms; to-do: make configurable. shouldn't need to write here regardless, it's default.
+  ESP_LOGCONFIG(TAG, "Setting Tavg to 1000ms...");
+  uint16_t Tavg = 1000; // or 1000ms; to-do: make configurable. shouldn't need to write here regardless, it's default.
   if (!this->write_byte(PCBADBM_REGISTER_TAVG_HIGH, (Tavg >> 8) & 0xFF)) {
     this->mark_failed();
     return;
@@ -122,7 +122,7 @@ void PCBADBMComponent::update() {
   // Increment the count each time the function is called
   invocationCount++;
 
-  if (invocationCount % 1 == 0) { // change from 1 to 8 for slow mode
+  if (invocationCount % 8 == 0) { // change from 1 to 8 for slow mode
     invocationCount = 0;
   // Enable sensor
     ESP_LOGV(TAG, "Sending conversion request...");
