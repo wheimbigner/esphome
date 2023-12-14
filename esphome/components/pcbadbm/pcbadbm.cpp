@@ -98,6 +98,7 @@ void PCBADBMComponent::setup() {
 
 void PCBADBMComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "PCBADBM:");
+  ESP_LOGCONFIG(TAG, "  Version 2");
   LOG_I2C_DEVICE(this);
   switch (this->error_code_) {
     case COMMUNICATION_FAILED:
