@@ -117,13 +117,13 @@ void PCBADBMComponent::dump_config() {
 float PCBADBMComponent::get_setup_priority() const { return setup_priority::DATA; }
 
 void PCBADBMComponent::update() {
-  static int invocationCount = 0;
+//  static int invocationCount = 0;
 
   // Increment the count each time the function is called
-  invocationCount++;
+//  invocationCount++;
 
-  if (invocationCount % 8 == 0) { // change from 1 to 8 for slow mode
-    invocationCount = 0;
+//  if (invocationCount % 8 == 0) { // change from 1 to 8 for slow mode
+//    invocationCount = 0;
   // Enable sensor
     ESP_LOGV(TAG, "Sending conversion request...");
 
@@ -142,7 +142,7 @@ void PCBADBMComponent::update() {
       if (this->decibels_min_sensor_ != nullptr)
         this->decibels_min_sensor_->publish_state(dbm_min);
     });
-  }
+//  }
 }
 
 uint8_t PCBADBMComponent::read_decibels_() {
